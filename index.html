@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguridad</title>
+    <script src="crypto-js.js"></script>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2rem;
+        }
+
+        button, .copy-btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-left: 10px;
+        }
+
+	button:hover, .copy-btn:hover {
+	    background-color: #0056b3;
+	}
+	
+	.copy-btn {
+	margin-bottom: 20px;
+	}
+
+        .formulario {
+            display: none;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 600px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: #007bff;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            width: calc(100% - 60px);
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .input-group {
+	    display: flex;
+	    align-items: center;
+	}
+
+        input[type="submit"]:hover {
+            background-color: #218838;
+        }
+
+        /* Contenedor centrado para el contenido */
+        .container {
+            text-align: center;
+        }
+
+        /* Añadir espacio entre los formularios y botones */
+        .spacer {
+            margin-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Cifrado y decifrado con AES</h1>
+
+        <!-- Botones para mostrar los formularios -->
+        <button id="btnFormulario1">Cifrar</button>
+        <button id="btnFormulario2">Decifrar</button>
+
+        <div class="spacer"></div>
+
+        <!-- Formulario 1 -->
+        <form id="encryptionForm" action="server.php" onsubmit="encryptPassword(event)" class="formulario">
+            <h2>Cifrar</h2>
+            <label for="password">Contraseña a cifrar:</label>
+            <input type="password" id="password" name="password" required placeholder="Escribe la contraseña">
+            <label for="encryptionKey">Llave de cifrado:</label>
+            <input type="text" id="encryptionKey" name="encryptionKey" required placeholder="Escribe la llave de cifrado">
+            <input type="submit" value="Cifrar">
+	    <br></br>
+            <label for="encryptionKey">Contraseña encriptada:</label>
+	    <div class="input-group">
+	        <input type="text" id="encryptedPassword" name="encryptedPassword">
+	        <button type="button" class="copy-btn" onclick="copiarTexto('encryptedPassword')">Copiar</button>
+	    </div>
+        </form>
+
+        <!-- Formulario 2 -->
+        <form id="decryptionForm" action="server.php" onsubmit="decryptPassword(event)" class="formulario">
+            <h2>Decifrar</h2>
+            <label for="password">Contraseña cifrada:</label>
+            <input type="password" id="password2" name="password2" required placeholder="Escribe la contraseña cifrada">
+            <label for="decryptionKey">Llave de decifrado:</label>
+            <input type="text" id="decryptionKey" name="decryptionKey" required placeholder="Escribe la llave de cifrado">
+            <input type="submit" value="Decifrar">
+	    <br></br>
+            <label for="decryptionKey">Contraseña Original:</label>
+	    <div class="input-group">
+	        <input type="text" id="decryptedPassword" name="decryptedPassword">
+	        <button type="button" class="copy-btn" onclick="copiarTexto('decryptedPassword')">Copiar</button>
+	    </div>
+
+        </form>
+    </div>
+
+    <script>
+        // Obtener referencias a los botones y formularios
+        const btnFormulario1 = document.getElementById('btnFormulario1');
+        const btnFormulario2 = document.getElementById('btnFormulario2');
+        const formulario1 = document.getElementById('encryptionForm');
+        const formulario2 = document.getElementById('decryptionForm');
+
+        // Función para resetear y mostrar el formulario 1
+        btnFormulario1.addEventListener('click', () => {
+            decryptionForm.style.display = 'none'; // Ocultar formulario 2
+            encryptionForm.style.display = 'block'; // Mostrar formulario 1
+            encryptionForm.reset(); // Resetear formulario 1
+        });
+
+        // Función para resetear y mostrar el formulario 2
+        btnFormulario2.addEventListener('click', () => {
+            encryptionForm.style.display = 'none'; // Ocultar formulario 1
+            decryptionForm.style.display = 'block'; // Mostrar formulario 2
+            decryptionForm.reset(); // Resetear formulario 2
+        });
+
+	function copiarTexto(idInput) {
+	    const input = document.getElementById(idInput);
+	    const texto = input.value;
+	    
+	    if (texto) {
+		navigator.clipboard.writeText(texto)
+		    .then(() => {
+			//alert('Texto copiado: ' + texto);
+		    })
+		    .catch(err => {
+			console.error('Error al copiar: ', err);
+		    });
+	    } else {
+		//alert('No hay texto para copiar.');
+	    }
+	}
+    </script>
+    
+        <script>
+        function encryptPassword(event) {
+            event.preventDefault();  // Evita el envío automático del formulario
+
+            var password = document.getElementById("password").value;
+            var key = document.getElementById("encryptionKey").value;
+
+            // Deriva la clave (key) a un formato adecuado usando SHA-256
+            var derivedKey = CryptoJS.SHA256(key);
+
+            // Generar un IV aleatorio (128 bits)
+            var iv = CryptoJS.lib.WordArray.random(16);
+
+            // Cifrar la contraseña usando AES en modo CBC
+            var encrypted = CryptoJS.AES.encrypt(password, derivedKey, {
+                iv: iv
+            });
+
+            // Concatenar IV con el ciphertext (IV + ciphertext)
+            var encryptedWithIv = iv.concat(encrypted.ciphertext).toString(CryptoJS.enc.Base64);
+
+            // Colocar la contraseña cifrada con IV en input
+            document.getElementById("encryptedPassword").value = encryptedWithIv;
+
+            // Borrar el campo de texto de la contraseña original
+            document.getElementById("password").value = "";
+	    document.getElementById("encryptionKey").value = "";
+
+            // Enviar el formulario
+            //document.getElementById("encryptionForm").submit();
+        }
+
+        function decryptPassword(event) {
+            event.preventDefault();  // Evita el envío automático del formulario
+
+	    var encryptedBase64 = document.getElementById("password2").value;
+	    var key = document.getElementById("decryptionKey").value;
+
+            try {
+                // Derivar la clave (key) a un formato adecuado usando SHA-256
+                var derivedKey = CryptoJS.SHA256(key);
+
+                // Decodificar el Base64 a formato de WordArray
+                var encryptedData = CryptoJS.enc.Base64.parse(encryptedBase64);
+
+                // Extraer el IV (los primeros 16 bytes) y el ciphertext
+                var iv = CryptoJS.lib.WordArray.create(encryptedData.words.slice(0, 4), 16);
+                var ciphertext = CryptoJS.lib.WordArray.create(encryptedData.words.slice(4));
+
+                // Descifrar el ciphertext usando AES en modo CBC
+                var decrypted = CryptoJS.AES.decrypt({
+                    ciphertext: ciphertext
+                }, derivedKey, {
+                    iv: iv
+                });
+
+                // Convertir el resultado descifrado a texto plano (UTF-8)
+                var decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+
+                // Verifica si el descifrado es exitoso (la salida no es vacía)
+                if (decryptedText) {
+                    // Mostrar la contraseña descifrada
+                    document.getElementById("decryptedPassword").value = decryptedText;
+                    decryptedText = "";
+                } else {
+                    document.getElementById("decryptedPassword").value = "Error: La llave o el texto cifrado es incorrecto.";
+                }
+
+            } catch (error) {
+                // En caso de error durante el descifrado
+                document.getElementById("decryptedPassword").value = "Error: No se pudo descifrar el texto.";
+            }
+
+            // Limpiar los campos de entrada
+            document.getElementById("decryptionKey").value = "";
+            document.getElementById("password2").value = "";
+        }
+
+    </script>
+
+</body>
+</html>
+
